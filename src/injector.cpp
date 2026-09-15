@@ -309,8 +309,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM w, LPARAM l) {
             ES_AUTOVSCROLL | ES_READONLY,
             18, 378, 480, 150, hWnd, (HMENU)ID_LOG, hi, nullptr);
         SendMessageW(g_hLog, WM_SETFONT, (WPARAM)g_hFont, TRUE);
-        SendMessageW(g_hLog, EM_SETBKGNDCOLOR, 0, RGB(18, 20, 26));
-
+        
         std::wstring def = ExeDir() + L"\\MuvixoClient.dll";
         g_dllPath = def;
         SetWindowTextW(g_hDllEdit, def.c_str());
