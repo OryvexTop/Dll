@@ -8,4 +8,3 @@
 #include <imgui_impl_win32.h>
 #include <GL/gl.h>
 #include <string>
-<paste hooks.cpp here>
