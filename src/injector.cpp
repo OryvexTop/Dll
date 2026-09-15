@@ -1,4 +1,4 @@
-// src/injector.cpp — Win32 GUI injector
+// src/injector.cpp - Win32 GUI injector
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <CommCtrl.h>
@@ -316,7 +316,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM w, LPARAM l) {
 
         Log(L"[*] Muvixo Injector ready.");
         if (!IsElevated())
-            Log(L"[!] Not running as admin — injection will fail for protected processes.");
+            Log(L"[!] Not running as admin - injection will fail for protected processes.");
 
         RefreshProcessList();
 

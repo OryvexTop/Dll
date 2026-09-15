@@ -1,1 +1,11 @@
+#include "hooks.h"
+#include "clickgui.h"
+#include "modules.h"
+#include <Windows.h>
+#include <MinHook.h>
+#include <imgui.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_win32.h>
+#include <GL/gl.h>
+#include <string>
 <paste hooks.cpp here>

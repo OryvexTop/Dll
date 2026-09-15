@@ -41,7 +41,7 @@ void OnModuleToggled(const char* name, bool state) {
     if (!std::strcmp(name, "Anti AFK"))    g_AntiAFK    = state;
     if (!std::strcmp(name, "Chat Timestamp")) g_ChatTime = state;
 
-    // Fullbright: real effect — patch gamma via SPI_SETSCREENSAVEACTIVE trick
+    // Fullbright: real effect - patch gamma via SPI_SETSCREENSAVEACTIVE trick
     // is unreliable; instead we set a Windows gamma ramp that brightens the
     // whole screen. Turn off = reset.
     if (!std::strcmp(name, "Fullbright")) {
@@ -86,7 +86,7 @@ void OnFrame(float dt) {
 
     // Sneak toggle: hold shift while enabled
     if (g_Sneak) {
-        // (Same caveat as sprint — real toggle requires JNI.)
+        // (Same caveat as sprint - real toggle requires JNI.)
     }
 
     // Anti-AFK: tiny mouse nudge every 40s
@@ -124,7 +124,7 @@ void OnFrame(float dt) {
     char buf[128];
 
     if (g_Coords) {
-        // can't read MC coordinates without JNI — leave placeholder
+        // can't read MC coordinates without JNI - leave placeholder
         std::snprintf(buf, sizeof(buf), "XYZ: ---  ---  ---");
         drawPill(buf);
     }
