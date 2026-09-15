@@ -32,7 +32,8 @@ static bool Inject(DWORD pid, const std::wstring& dllPath) {
     LPVOID r = VirtualAllocEx(h, nullptr, bytes, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     if (!r) { CloseHandle(h); return false; }
     WriteProcessMemory(h, r, dllPath.c_str(), bytes, nullptr);
-    auto loadLib = (LPTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryW");
+    auto loadLib = (LPTHREAD_START_ROUTINE)GetProcAddress(
+        GetModuleHandleA("kernel32.dll"), "LoadLibraryW");
     HANDLE t = CreateRemoteThread(h, nullptr, 0, loadLib, r, 0, nullptr);
     if (!t) { VirtualFreeEx(h, r, 0, MEM_RELEASE); CloseHandle(h); return false; }
     WaitForSingleObject(t, 10000);
@@ -46,19 +47,31 @@ int wmain() {
     wchar_t exePath[MAX_PATH]{}; GetModuleFileNameW(nullptr, exePath, MAX_PATH);
     fs::path dllPath = fs::path(exePath).parent_path() / L"MuvixoClient.dll";
     fs::path dllName = dllPath.filename();
-    if (!fs::exists(dllPath)) { std::wcerr << L"[!] MuvixoClient.dll missing\n"; system("pause"); return 1; }
-    std::wcout << L"[*] Waiting for javaw.exe...\n";
+    if (!fs::exists(dllPath)) {
+        std::wcerr << L"[!] MuvixoClient.dll missing next to Injector.exe\n";
+        system("pause"); return 1;
+    }
+    std::wcout << L"[*] MuvixoClient injector\n";
+    std::wcout << L"[*] Waiting for javaw.exe (Minecraft)...\n";
+    std::wcout << L"[*] RightShift = open menu  |  END = unload\n\n";
+
     DWORD lastPid = 0;
     while (true) {
         DWORD pid = FindProcess(L"javaw.exe");
         if (pid && pid != lastPid) {
             std::wcout << L"[+] Found javaw.exe PID " << pid << L"\n";
-            Sleep(8000);
-            if (AlreadyInjected(pid, dllName.c_str())) std::wcout << L"[=] Already injected\n";
-            else if (Inject(pid, dllPath.wstring())) std::wcout << L"[+] Injected! RightShift = GUI\n";
-            else std::wcerr << L"[-] Injection failed (run as admin)\n";
+            Sleep(10000);
+            if (AlreadyInjected(pid, dllName.c_str())) {
+                std::wcout << L"[=] Already injected\n";
+            } else if (Inject(pid, dllPath.wstring())) {
+                std::wcout << L"[+] Injected! Press RightShift in-game.\n";
+            } else {
+                std::wcerr << L"[-] Injection failed (run as admin)\n";
+            }
             lastPid = pid;
-        } else if (!pid) lastPid = 0;
+        } else if (!pid) {
+            lastPid = 0;
+        }
         Sleep(2000);
     }
 }

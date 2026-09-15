@@ -11,14 +11,17 @@ static DWORD WINAPI MainThread(LPVOID) {
         MessageBoxA(nullptr, "Failed to install hooks.", "MuvixoClient", MB_ICONERROR);
         FreeLibraryAndExitThread(g_Self, 1);
     }
-    bool prev = false;
+
+    bool prevRs = false;
     while (true) {
-        bool now = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) != 0;
-        if (now && !prev && g_Gui) g_Gui->Toggle();
-        prev = now;
+        bool nowRs = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) != 0;
+        if (nowRs && !prevRs && g_Gui) g_Gui->Toggle();
+        prevRs = nowRs;
+
         if (GetAsyncKeyState(VK_END) & 1) break;
-        Sleep(30);
+        Sleep(25);
     }
+
     UninstallHooks();
     FreeLibraryAndExitThread(g_Self, 0);
     return 0;
