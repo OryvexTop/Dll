@@ -1,5 +1,6 @@
 #include "hooks.h"
 #include "clickgui.h"
+#include "modules.h"
 #include <Windows.h>
 #include <MinHook.h>
 #include <imgui.h>
@@ -13,21 +14,65 @@ static wglSwapBuffers_t o_wglSwapBuffers = nullptr;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 static WNDPROC o_WndProc = nullptr;
-
+static HWND    g_hwnd   = nullptr;
 static ULONGLONG g_LastTick = 0;
 
+// ── Mouse-lock fix ────────────────────────────────────────────────
+// Vanilla Minecraft continuously re-centers the cursor (SetCursorPos)
+// while the game window is focused. That fights ImGui. When the menu
+// is open we clip the cursor so MC stops recentering it, and we also
+// restore the real desktop cursor so the user can click.
+
+static void UpdateMouseMode() {
+    bool guiOpen = g_Gui && g_Gui->visible;
+    if (guiOpen) {
+        // Show OS cursor + clip it to the game window
+        ImGui::GetIO().MouseDrawCursor = true;
+        if (g_hwnd) {
+            RECT r; GetClientRect(g_hwnd, &r);
+            POINT tl{ r.left, r.top }, br{ r.right, r.bottom };
+            ClientToScreen(g_hwnd, &tl);
+            ClientToScreen(g_hwnd, &br);
+            RECT clip{ tl.x, tl.y, br.x, br.y };
+            ClipCursor(&clip);
+        }
+        // Stop MC from stealing focus for recenter by pushing a "no capture" hint.
+        // ImGui_ImplWin32 uses WM_SETCURSOR / WM_MOUSEMOVE; the trick is to
+        // let mouse messages reach ImGui while the GUI is open. That's handled
+        // in WndProc below.
+    } else {
+        ImGui::GetIO().MouseDrawCursor = false;
+        ClipCursor(nullptr);
+    }
+}
+
+// ── WndProc: only swallow input when GUI is visible ───────────────
 static LRESULT CALLBACK hk_WndProc(HWND hWnd, UINT msg, WPARAM w, LPARAM l) {
     if (g_ImGuiReady && g_Gui && g_Gui->visible) {
+        // Eat mouse/keyboard messages so Minecraft doesn't also process them
         if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, w, l))
             return true;
+
+        switch (msg) {
+            case WM_LBUTTONDOWN: case WM_LBUTTONUP:
+            case WM_RBUTTONDOWN: case WM_RBUTTONUP:
+            case WM_MBUTTONDOWN: case WM_MBUTTONUP:
+            case WM_MOUSEMOVE:
+            case WM_MOUSEWHEEL:
+            case WM_KEYDOWN: case WM_KEYUP:
+            case WM_CHAR:
+            case WM_SETCURSOR:
+                return true;   // ← stop MC from reacting to input
+        }
     }
     return CallWindowProc(o_WndProc, hWnd, msg, w, l);
 }
 
+// ── Swap hook ─────────────────────────────────────────────────────
 static BOOL WINAPI hk_wglSwapBuffers(HDC hdc) {
     static bool init = false;
     if (!init) {
-        HWND hwnd = WindowFromDC(hdc);
+        g_hwnd = WindowFromDC(hdc);
 
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -38,20 +83,20 @@ static BOOL WINAPI hk_wglSwapBuffers(HDC hdc) {
 
         ImGui::StyleColorsDark();
         ImGuiStyle& s = ImGui::GetStyle();
-        s.WindowRounding    = 10.f;
-        s.FrameRounding     = 6.f;
-        s.GrabRounding      = 6.f;
-        s.ScrollbarRounding = 6.f;
+        s.WindowRounding    = 14.f;
+        s.FrameRounding     = 8.f;
+        s.GrabRounding      = 8.f;
+        s.ScrollbarRounding = 8.f;
         s.WindowBorderSize  = 1.f;
-        s.FrameBorderSize   = 0.f;
-        s.WindowPadding     = ImVec2(14, 14);
-        s.FramePadding      = ImVec2(10, 6);
+        s.FrameBorderSize   = 1.f;
+        s.WindowPadding     = ImVec2(16, 16);
+        s.FramePadding      = ImVec2(12, 8);
         s.ItemSpacing       = ImVec2(8, 6);
 
-        ImGui_ImplWin32_Init(hwnd);
+        ImGui_ImplWin32_Init(g_hwnd);
         ImGui_ImplOpenGL3_Init("#version 130");
 
-        o_WndProc = (WNDPROC)SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)hk_WndProc);
+        o_WndProc = (WNDPROC)SetWindowLongPtr(g_hwnd, GWLP_WNDPROC, (LONG_PTR)hk_WndProc);
 
         g_Gui = new ClickGUI();
         g_ImGuiReady = true;
@@ -64,13 +109,14 @@ static BOOL WINAPI hk_wglSwapBuffers(HDC hdc) {
         if (dt > 0.1f) dt = 0.1f;
         g_LastTick = now;
 
-        ImGui::GetIO().MouseDrawCursor = g_Gui->visible;
+        UpdateMouseMode();
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        g_Gui->Render(dt);
+        OnFrame(dt);          // modules HUD
+        g_Gui->Render(dt);    // clickgui
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -92,6 +138,7 @@ bool InstallHooks() {
 }
 
 void UninstallHooks() {
+    ClipCursor(nullptr);
     MH_DisableHook(MH_ALL_HOOKS);
     MH_Uninitialize();
 }

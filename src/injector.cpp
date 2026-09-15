@@ -51,9 +51,9 @@ int wmain() {
         std::wcerr << L"[!] MuvixoClient.dll missing next to Injector.exe\n";
         system("pause"); return 1;
     }
-    std::wcout << L"[*] MuvixoClient injector\n";
-    std::wcout << L"[*] Waiting for javaw.exe (Minecraft)...\n";
-    std::wcout << L"[*] RightShift = open menu  |  END = unload\n\n";
+    std::wcout << L"[*] MuvixoClient v2 injector\n";
+    std::wcout << L"[*] Waiting for javaw.exe...\n";
+    std::wcout << L"[*] RightShift = menu  |  END = unload\n\n";
 
     DWORD lastPid = 0;
     while (true) {
@@ -61,17 +61,14 @@ int wmain() {
         if (pid && pid != lastPid) {
             std::wcout << L"[+] Found javaw.exe PID " << pid << L"\n";
             Sleep(10000);
-            if (AlreadyInjected(pid, dllName.c_str())) {
+            if (AlreadyInjected(pid, dllName.c_str()))
                 std::wcout << L"[=] Already injected\n";
-            } else if (Inject(pid, dllPath.wstring())) {
-                std::wcout << L"[+] Injected! Press RightShift in-game.\n";
-            } else {
+            else if (Inject(pid, dllPath.wstring()))
+                std::wcout << L"[+] Injected! RightShift to open menu.\n";
+            else
                 std::wcerr << L"[-] Injection failed (run as admin)\n";
-            }
             lastPid = pid;
-        } else if (!pid) {
-            lastPid = 0;
-        }
+        } else if (!pid) lastPid = 0;
         Sleep(2000);
     }
 }
