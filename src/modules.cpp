@@ -5,6 +5,7 @@
 #include <cstring>
 #include <ctime>
 #include <cmath>
+#include <cstdio>
 
 // ── Module state (mirrors ClickGUI on toggle) ─────────────────────
 static bool g_Sprint     = true;
@@ -125,12 +126,12 @@ void OnFrame(float dt) {
 
     if (g_Coords) {
         // can't read MC coordinates without JNI - leave placeholder
-        std::snprintf(buf, sizeof(buf), "XYZ: ---  ---  ---");
+        snprintf(buf, sizeof(buf), "XYZ: ---  ---  ---");
         drawPill(buf);
     }
 
     if (g_FPS) {
-        std::snprintf(buf, sizeof(buf), "FPS: %.0f", g_FpsValue);
+        snprintf(buf, sizeof(buf), "FPS: %.0f", g_FpsValue);
         drawPill(buf);
     }
 
@@ -138,13 +139,13 @@ void OnFrame(float dt) {
         std::time_t t = std::time(nullptr);
         std::tm lt{};
         localtime_s(&lt, &t);
-        std::snprintf(buf, sizeof(buf), "%02d:%02d:%02d",
+        snprintf(buf, sizeof(buf), "%02d:%02d:%02d",
                       lt.tm_hour, lt.tm_min, lt.tm_sec);
         drawPill(buf);
     }
 
     if (g_Ping) {
-        std::snprintf(buf, sizeof(buf), "Ping: -- ms");
+        snprintf(buf, sizeof(buf), "Ping: -- ms");
         drawPill(buf);
     }
 }
