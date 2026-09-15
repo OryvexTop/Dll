@@ -55,7 +55,7 @@ target_include_directories(MuvixoClient PRIVATE
 target_link_libraries(MuvixoClient PRIVATE imgui minhook opengl32 dwmapi)
 set_target_properties(MuvixoClient PROPERTIES PREFIX "" OUTPUT_NAME "MuvixoClient")
 
-# ── Injector.exe (GUI subsystem — no console window) ────────────────────
+# ── Injector.exe (GUI subsystem - no console window) ────────────────────
 add_executable(Injector WIN32 src/injector.cpp)
 target_compile_definitions(Injector PRIVATE UNICODE _UNICODE)
 target_link_libraries(Injector PRIVATE comctl32)
