@@ -29,10 +29,7 @@ public:
     float openAnim      = 0.f;
     float watermarkAnim = 0.f;
     int   activeTab     = 0;
-    float tabIndicator  = 0.f;
     float clock         = 0.f;
-    char  search[64]    = {0};
-
     Module* modules[32];
     int     moduleCount = 0;
 
