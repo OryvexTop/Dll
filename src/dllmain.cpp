@@ -17,7 +17,6 @@ static DWORD WINAPI MainThread(LPVOID) {
         bool nowRs = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) != 0;
         if (nowRs && !prevRs && g_Gui) g_Gui->Toggle();
         prevRs = nowRs;
-
         if (GetAsyncKeyState(VK_END) & 1) break;
         Sleep(25);
     }
