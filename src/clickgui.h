@@ -2,14 +2,11 @@
 #include <Windows.h>
 #include <string>
 
-enum class Category {
-    Combat = 0,
-    Movement,
-    Render,
-    Player,
-    Misc,
-    COUNT
-};
+// ── ADD THIS ─────────────────────────────────────────
+#include <imgui.h>
+// ─────────────────────────────────────────────────────
+
+enum class Category { Combat = 0, Movement, Render, Player, Misc, COUNT };
 
 struct Module {
     const char* name;
@@ -18,8 +15,7 @@ struct Module {
     bool        enabled;
     float       toggleAnim;
     float       hoverAnim;
-    float       pulseAnim;   // small pulse when toggled
-
+    float       pulseAnim;
     Module(const char* n, const char* d, Category c, bool on)
         : name(n), description(d), category(c), enabled(on),
           toggleAnim(on ? 1.f : 0.f), hoverAnim(0.f), pulseAnim(0.f) {}
@@ -32,7 +28,7 @@ public:
     float watermarkAnim = 0.f;
     int   activeTab     = 0;
     float tabIndicator  = 0.f;
-    float clock         = 0.f;   // seconds, for ambient animations
+    float clock         = 0.f;
     char  search[64]    = {0};
 
     Module* modules[32];
@@ -51,10 +47,9 @@ private:
     void  DrawFooter();
     bool  MatchesSearch(Module* m);
 
-    // Easing helpers
-    static float EaseOutExpo(float t);
-    static float EaseOutBack(float t);
-    static float Lerp(float a, float b, float t);
+    static float  EaseOutExpo(float t);
+    static float  EaseOutBack(float t);
+    static float  Lerp(float a, float b, float t);
     static ImVec4 LerpColor(const ImVec4& a, const ImVec4& b, float t);
 };
 
