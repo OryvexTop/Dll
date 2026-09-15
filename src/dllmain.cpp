@@ -12,11 +12,15 @@ static DWORD WINAPI MainThread(LPVOID) {
         FreeLibraryAndExitThread(g_Self, 1);
     }
 
-    bool prevRs = false;
+    bool prevRs = false, prevAlt = false;
     while (true) {
-        bool nowRs = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) != 0;
-        if (nowRs && !prevRs && g_Gui) g_Gui->Toggle();
-        prevRs = nowRs;
+        bool nowRs  = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) != 0;
+        bool nowAlt = (GetAsyncKeyState(VK_F6)     & 0x8000) != 0;
+
+        if (nowRs  && !prevRs  && g_Gui) g_Gui->Toggle();
+        if (nowAlt && !prevAlt && g_Gui) g_Gui->ToggleAlt();
+        prevRs = nowRs; prevAlt = nowAlt;
+
         if (GetAsyncKeyState(VK_END) & 1) break;
         Sleep(25);
     }

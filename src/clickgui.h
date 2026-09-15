@@ -26,6 +26,7 @@ struct Module {
 class ClickGUI {
 public:
     bool  visible       = false;
+    bool  altManagerOpen = false;
     float openAnim      = 0.f;
     float watermarkAnim = 0.f;
     int   activeTab     = 0;
@@ -35,6 +36,7 @@ public:
 
     ClickGUI();
     void Toggle() { visible = !visible; }
+    void ToggleAlt() { altManagerOpen = !altManagerOpen; }
     void Render(float dt);
     void DrawWatermark();
 };

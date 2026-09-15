@@ -1,5 +1,7 @@
 #include "hooks.h"
 #include "clickgui.h"
+#include "modules.h"
+#include "altmanager.h"
 #include <Windows.h>
 #include <MinHook.h>
 #include <imgui.h>
@@ -8,20 +10,18 @@
 #include <GL/gl.h>
 
 bool g_ImGuiReady = false;
-
 typedef BOOL(WINAPI* wglSwapBuffers_t)(HDC);
 static wglSwapBuffers_t o_wglSwapBuffers = nullptr;
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
-static WNDPROC     o_WndProc = nullptr;
-static HWND        g_hwnd    = nullptr;
-static ULONGLONG   g_LastTick = 0;
+static WNDPROC   o_WndProc = nullptr;
+static HWND      g_hwnd    = nullptr;
+static ULONGLONG g_LastTick = 0;
 
 static LRESULT CALLBACK hk_WndProc(HWND hWnd, UINT msg, WPARAM w, LPARAM l) {
-    bool guiOpen = g_ImGuiReady && g_Gui && g_Gui->visible;
+    bool guiOpen = g_ImGuiReady && g_Gui && (g_Gui->visible || g_Gui->altManagerOpen);
     if (guiOpen) {
-        if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, w, l))
-            return true;
+        if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, w, l)) return true;
         switch (msg) {
             case WM_LBUTTONDOWN: case WM_LBUTTONUP:
             case WM_RBUTTONDOWN: case WM_RBUTTONUP:
@@ -40,7 +40,6 @@ static BOOL WINAPI hk_wglSwapBuffers(HDC hdc) {
     static bool init = false;
     if (!init) {
         g_hwnd = WindowFromDC(hdc);
-
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
@@ -58,10 +57,12 @@ static BOOL WINAPI hk_wglSwapBuffers(HDC hdc) {
 
         ImGui_ImplWin32_Init(g_hwnd);
         ImGui_ImplOpenGL3_Init("#version 130");
-
         o_WndProc = (WNDPROC)SetWindowLongPtr(g_hwnd, GWLP_WNDPROC, (LONG_PTR)hk_WndProc);
 
-        g_Gui = new ClickGUI();
+        g_Gui    = new ClickGUI();
+        g_AltMgr = new AltManager();
+        g_AltMgr->Load();
+
         g_ImGuiReady = true;
         init = true;
     }
@@ -72,18 +73,19 @@ static BOOL WINAPI hk_wglSwapBuffers(HDC hdc) {
         if (dt > 0.1f) dt = 0.1f;
         g_LastTick = now;
 
-        ImGui::GetIO().MouseDrawCursor = g_Gui->visible;
+        bool anyOpen = g_Gui->visible || g_Gui->altManagerOpen;
+        ImGui::GetIO().MouseDrawCursor = anyOpen;
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
+        OnFrame(dt);
         g_Gui->Render(dt);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
-
     return o_wglSwapBuffers(hdc);
 }
 
@@ -100,6 +102,7 @@ bool InstallHooks() {
 }
 
 void UninstallHooks() {
+    if (g_AltMgr) g_AltMgr->Save();
     MH_DisableHook(MH_ALL_HOOKS);
     MH_Uninitialize();
 }

@@ -1,10 +1,12 @@
 #include "clickgui.h"
+#include "altmanager.h"
 #include <imgui.h>
 #include <cmath>
 
 ClickGUI* g_Gui = nullptr;
 
 static const ImVec4 ACCENT_A  = ImVec4(0.64f, 0.42f, 1.00f, 1.00f);
+static const ImVec4 ACCENT_B  = ImVec4(1.00f, 0.42f, 0.72f, 1.00f);
 static const ImVec4 BG_DEEP   = ImVec4(0.055f, 0.055f, 0.075f, 0.97f);
 static const ImVec4 TEXT_MAIN = ImVec4(0.96f, 0.96f, 0.98f, 1.00f);
 
@@ -16,7 +18,9 @@ ClickGUI::ClickGUI() {
     add("Fullbright",   "Gamma to 100%",           Category::Render,   true);
     add("Coordinates",  "Show XYZ + chunk",        Category::Render,   true);
     add("FPS Counter",  "Minimal FPS overlay",     Category::Render,   true);
+    add("Clock",        "Real-time clock",         Category::Render,   false);
     add("Anti AFK",     "Prevent idle kick",       Category::Misc,     true);
+    add("Alt Manager",  "Manage alts",             Category::Misc,     false);
 }
 
 void ClickGUI::DrawWatermark() {
@@ -38,6 +42,11 @@ void ClickGUI::DrawWatermark() {
 void ClickGUI::Render(float dt) {
     clock += dt;
     DrawWatermark();
+
+    // Alt manager — separate window
+    if (altManagerOpen && g_AltMgr) {
+        g_AltMgr->Render();
+    }
 
     float target = visible ? 1.f : 0.f;
     openAnim += (target - openAnim) * 0.20f;
@@ -62,6 +71,10 @@ void ClickGUI::Render(float dt) {
     ImGui::TextColored(ACCENT_A, "Muvixo Client");
     ImGui::SameLine();
     ImGui::TextDisabled("| Created by Muvixo");
+
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 100.f);
+    if (ImGui::Button("Alt Manager")) altManagerOpen = !altManagerOpen;
+
     ImGui::Separator();
 
     if (ImGui::BeginTabBar("##tabs")) {
