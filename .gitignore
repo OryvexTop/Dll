@@ -1,6 +1,8 @@
 build/
-dist/
+out/
 .vs/
+dist/
 *.user
 *.pdb
 *.obj
+*.zip
