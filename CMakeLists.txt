@@ -15,7 +15,7 @@ if(MSVC)
 endif()
 
 if(NOT WIN32)
-    message(FATAL_ERROR "MuvixoClient only builds on Windows.")
+    message(FATAL_ERROR "Windows only.")
 endif()
 
 include(FetchContent)
@@ -40,17 +40,16 @@ add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp)
 target_include_directories(imgui PUBLIC
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends)
+    ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
 target_link_libraries(imgui PUBLIC opengl32 dwmapi)
 
 add_library(MuvixoClient SHARED
     src/dllmain.cpp
     src/clickgui.cpp
-    src/hooks.cpp)
+    src/hooks.cpp
+    src/modules.cpp)
 target_include_directories(MuvixoClient PRIVATE
-    src
-    ${minhook_SOURCE_DIR}/include)
+    src ${minhook_SOURCE_DIR}/include)
 target_link_libraries(MuvixoClient PRIVATE imgui minhook opengl32 dwmapi)
 set_target_properties(MuvixoClient PROPERTIES PREFIX "" OUTPUT_NAME "MuvixoClient")
 
@@ -60,6 +59,4 @@ set_target_properties(Injector PROPERTIES OUTPUT_NAME "Injector")
 
 add_custom_command(TARGET Injector POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:MuvixoClient>
-            $<TARGET_FILE_DIR:Injector>
-    COMMENT "Copying MuvixoClient.dll next to Injector.exe")
+            $<TARGET_FILE:MuvixoClient> $<TARGET_FILE_DIR:Injector>)
